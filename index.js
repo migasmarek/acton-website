@@ -1,5 +1,32 @@
 const matterContainer = document.querySelector("#matter-container");
 const THICCNESS = 60;
+const COLS = 13;
+const COL_WIDTH = matterContainer.clientWidth / COLS;
+const objects = [];
+let loadedImages = 0;
+const NUM_IMAGES = 80;
+
+
+const images = document.querySelectorAll(".matter-image");
+images.forEach((i) => {
+    i.addEventListener("load", function() {
+        objects.push(i);
+        loadedImages++;
+        if (loadedImages === images.length) {
+            addObjects();
+        }
+    });
+});
+
+let xPosition = [];
+
+for (let i = 0; i < COLS; i++) {
+    if (i === 0) {
+        xPosition.push(0 + COL_WIDTH / 2);
+    } else {
+        xPosition.push(xPosition[i-1] + COL_WIDTH);
+    }  
+};
 
 // module aliases
 var Engine = Matter.Engine,
@@ -10,6 +37,8 @@ var Engine = Matter.Engine,
 
 // create an engine
 var engine = Engine.create();
+
+engine.world.gravity.y = 0.6;
 
 // create a renderer
 var render = Render.create({
@@ -24,29 +53,43 @@ var render = Render.create({
     }
 });
 
-// create two boxes and a ground
-// var boxA = Bodies.rectangle(400, 200, 80, 80);
-// var boxB = Bodies.rectangle(450, 50, 80, 80);
-
-for (let i = 0; i < 5; i++) {
-    let circle = Bodies.circle(i, 10, 30, {
-        friction: 0.3,
-        frictionAir: 0.00001,
-        restitution: 0.8
-    });
-    Composite.add(engine.world, circle);
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+let colIndex = 0;
 
-var image = Bodies.rectangle(10, 30, 100, 100, {
-    render: {
-        sprite: {
-            texture: './img/illustration-1/png'
+function addObjects() {
+    for (let i = 0; i < NUM_IMAGES; i++) {
+        if (colIndex === COLS - 1) {
+            console.log("this is last iteration");
+            colIndex = 0;
         }
+        let randomNumber = getRandomInt(0, images.length - 1);
+        // console.log(randomNumber);
+        console.log(colIndex);
+        let rectangle = Bodies.rectangle(
+            xPosition[colIndex],
+            10,
+            objects[randomNumber].clientWidth,
+            objects[randomNumber].clientHeight,
+            {
+                friction: 0.3,
+                frictionAir: 0.00001,
+                restitution: 0.8,
+                render: {
+                    sprite: {
+                        texture: objects[randomNumber].src,
+                    }
+                }
+            }
+        );
+        colIndex++;
+        Composite.add(engine.world, rectangle);
     }
-});
-
-Composite.add(engine.world, image);
+}
 
 var ground = Bodies.rectangle(matterContainer.clientWidth / 2, matterContainer.clientHeight + THICCNESS / 2, 27639, THICCNESS, { isStatic: true });
 
