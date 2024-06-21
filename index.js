@@ -8,7 +8,6 @@ const Render = Matter.Render;
 const World = Matter.World;
 const Body = Matter.Body;
 const Bodies = Matter.Bodies;
-const Composite = Matter.Composite;
 const Mouse = Matter.Mouse;
 const MouseConstraint = Matter.MouseConstraint;
 
@@ -16,7 +15,7 @@ const MouseConstraint = Matter.MouseConstraint;
 // Scene Container
 const sceneContainer = document.querySelector("#matter-container");
 const canvasWidth = sceneContainer.offsetWidth;
-const canvasHeight = sceneContainer.offsetHeight + 100;
+const canvasHeight = sceneContainer.offsetHeight;
 
 
 const THICCNESS = 60;
@@ -55,7 +54,7 @@ const engine = Engine.create();
 Pixi Data
 --------------------------*/
 
-const matterImages = document.querySelectorAll(".matter-image");
+const matterImages = document.querySelectorAll(".image-shape");
 const images = [];
 let loadedImages = 0;
 let drawImages = false;
@@ -163,7 +162,7 @@ function createSceneObject(image) {
     const imageBody = Bodies.rectangle(
       image.initialPosition.x,
       image.initialPosition.y,
-    //   image.width,
+      // image.width,
     window.innerWidth * 0.1,
       image.height,
       {
@@ -209,10 +208,27 @@ Add the mouse to the Pixi frame. This is how you enable interaction with the bod
 --------------------------*/
 
 const mouseConstraint = MouseConstraint.create(engine, {
-    mouse: Mouse.create(document.querySelector(".scene canvas")),
-  });
-  
-  World.add(engine.world, mouseConstraint);
+  mouse: Mouse.create(document.querySelector("#matter-container canvas")),
+});
+
+// allow scroll through the canvas
+mouseConstraint.mouse.element.removeEventListener(
+    "mousewheel",
+    mouseConstraint.mouse.mousewheel
+  );
+  mouseConstraint.mouse.element.removeEventListener(
+    "DOMMouseScroll",
+    mouseConstraint.mouse.mousewheel
+  );
+
+World.add(engine.world, mouseConstraint);
+
+  if ('ontouchstart' in window || navigator.maxTouchPoints) {
+    World.remove(engine.world, mouseConstraint);
+    console.log('Touchscreen detected: Mouse constraint removed');
+} else {
+    console.log('Touchscreen not detected: Mouse constraint remains');
+}
 
 
 /*--------------------------
@@ -274,188 +290,3 @@ function handleResize() {
         )
     );
 }
-
-// window.addEventListener("resize", () => handleResize());
-
-
-
-
-
-
-
-
-// const matterContainer = document.querySelector("#matter-container");
-// const THICCNESS = 60;
-// const COLS = 13;
-// const COL_WIDTH = matterContainer.clientWidth / COLS;
-// const objects = [];
-// let loadedImages = 0;
-// const NUM_IMAGES = 80;
-
-
-// const images = document.querySelectorAll(".matter-image");
-// images.forEach((i) => {
-//     i.addEventListener("load", function() {
-//         objects.push(i);
-//         loadedImages++;
-//         if (loadedImages === images.length) {
-//             addObjects();
-//         }
-//     });
-// });
-
-// let xPosition = [];
-
-// for (let i = 0; i < COLS; i++) {
-//     if (i === 0) {
-//         xPosition.push(0 + COL_WIDTH / 2);
-//     } else {
-//         xPosition.push(xPosition[i-1] + COL_WIDTH);
-//     }  
-// };
-
-// // module aliases
-// var Engine = Matter.Engine,
-//     Render = Matter.Render,
-//     Runner = Matter.Runner,
-//     Bodies = Matter.Bodies,
-//     Composite = Matter.Composite;
-
-// // create an engine
-// var engine = Engine.create();
-
-// engine.world.gravity.y = 0.6;
-
-// // create a renderer
-// var render = Render.create({
-//     element: matterContainer,
-//     engine: engine,
-//     options: {
-//         width: matterContainer.clientWidth,
-//         height: matterContainer.clientHeight,
-//         background: "transparent",
-//         wireframes: false,
-//         showAngleIndicator: false
-//     }
-// });
-
-// function getRandomInt(min, max) {
-//     min = Math.ceil(min);
-//     max = Math.floor(max);
-//     return Math.floor(Math.random() * (max - min + 1)) + min;
-// }
-
-// let colIndex = 0;
-
-// function addObjects() {
-//     for (let i = 0; i < NUM_IMAGES; i++) {
-//         if (colIndex === COLS - 1) {
-//             console.log("this is last iteration");
-//             colIndex = 0;
-//         }
-//         let randomNumber = getRandomInt(0, images.length - 1);
-//         // console.log(randomNumber);
-//         console.log(colIndex);
-//         let rectangle = Bodies.rectangle(
-//             xPosition[colIndex],
-//             10,
-//             objects[randomNumber].clientWidth,
-//             objects[randomNumber].clientHeight,
-//             {
-//                 friction: 0.3,
-//                 frictionAir: 0.00001,
-//                 restitution: 0.8,
-//                 render: {
-//                     sprite: {
-//                         texture: objects[randomNumber].src,
-//                     }
-//                 }
-//             }
-//         );
-//         colIndex++;
-//         Composite.add(engine.world, rectangle);
-//     }
-// }
-
-// var ground = Bodies.rectangle(matterContainer.clientWidth / 2, matterContainer.clientHeight + THICCNESS / 2, 27639, THICCNESS, { isStatic: true });
-
-// var leftWall = Bodies.rectangle(
-//    0 - THICCNESS / 2,
-//     matterContainer.clientHeight / 2,
-//     THICCNESS,
-//     matterContainer.clientHeight * 5,
-//     { isStatic: true}
-// );
-
-// var rightWall = Bodies.rectangle(
-//     matterContainer.clientWidth + THICCNESS / 2,
-//     matterContainer.clientHeight / 2,
-//     THICCNESS,
-//     matterContainer.clientHeight * 5,
-//     { isStatic: true}
-// );
-
-// // add all of the bodies to the world
-// Composite.add(engine.world, [ground, leftWall, rightWall]);
-
-// let mouse = Matter.Mouse.create(render.canvas);
-// let mouseConstraint = Matter.MouseConstraint.create(
-//     engine,
-//     {
-//         mouse: mouse,
-//         constraint: {
-//             stiffness: 0.2,
-//             render: {
-//                 visible: false
-//             }
-//         }
-//     }
-// );
-
-// Composite.add(engine.world, mouseConstraint);
-
-// // allow scroll through the canvas
-// mouseConstraint.mouse.element.removeEventListener(
-//     "mousewheel",
-//     mouseConstraint.mouse.mousewheel
-// );
-
-// mouseConstraint.mouse.element.removeEventListener(
-//     "DOMMouseScroll",
-//     mouseConstraint.mouse.mousewheel
-// );
-
-// // run the renderer
-// Render.run(render);
-
-// // create runner
-// var runner = Runner.create();
-
-// // run the engine
-// Runner.run(runner, engine);
-
-// function handleResize(matterContainer) {
-//     // set canvas size to new values
-//     render.canvas.width = matterContainer.clientWidth;
-//     render.canvas.height = matterContainer.clientHeight;
-
-//     // reposition ground
-//     Matter.Body.setPosition(
-//         ground,
-//         Matter.Vector.create(
-//             matterContainer.clientWidth / 2,
-//             matterContainer.clientHeight + THICCNESS / 2
-//         )
-//     );
-
-//     // reposition right wall
-//     Matter.Body.setPosition(
-//         rightWall,
-//         Matter.Vector.create(
-//             matterContainer.clientWidth + THICCNESS / 2,
-//             matterContainer.clientHeight / 2
-//         )
-//     );
-// }
-
-// window.addEventListener("resize", () => handleResize(matterContainer));
